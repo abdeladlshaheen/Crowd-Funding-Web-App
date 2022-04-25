@@ -19,9 +19,9 @@ class User(models.Model):
     profile_picture = models.ImageField(upload_to="users/static/images")
 
     # optional fields
-    birthday = models.DateField(null=True)
-    fb_profile = models.URLField(max_length=200, null=True)
-    country = CountryField(null=True)
+    birthday = models.DateField(null=True, blank=True)
+    fb_profile = models.URLField(max_length=200, null=True, blank=True)
+    country = CountryField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
