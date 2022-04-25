@@ -2,14 +2,13 @@
 
 ### Installation
 
-1. To run the project:
-2. git clone https://github.com/abdeladlshaheen/Crowd-Funding-Web-App.git
-3. python3 -m venv .venv
-4. source .venv/bin/activate
-5. python3 -m pip install django
-6. cd Crowd-Funding-Web-App/
-7. pip freeze > requirements.txt
-8. python3 manage.py runserver
+1. git clone https://github.com/abdeladlshaheen/Crowd-Funding-Web-App.git
+2. python3 -m venv .venv
+3. source .venv/bin/activate
+4. python3 -m pip install django
+5. cd Crowd-Funding-Web-App/
+6. pip freeze > requirements.txt
+7. python3 manage.py runserver
 
 <hr/>
 
