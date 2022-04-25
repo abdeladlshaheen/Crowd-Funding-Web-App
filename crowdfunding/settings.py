@@ -80,8 +80,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'crowdfunding',
-        'USER': 'aelshopaky',
-        'PASSWORD': '159951',
+        'USER': 'ash',
+        'PASSWORD': '25456585e',
         'HOST': 'localhost',
         'PORT': '3306',
     }
