@@ -3,19 +3,16 @@
 ### Installation
 
 1. To run the project:
-   - git clone https://github.com/abdeladlshaheen/Crowd-Funding-Web-App.git
-   - python3 -m venv .venv
-   - source .venv/bin/activate
-   - python3 -m pip install django
-   - python3 Crowd-Funding-Web-App/manage.py runserver
-3. To configure your database:
-   - pip install mysqlclient
-4. To set up API:
-   - pip install djangorestframework
-<br/><br/>
-- python -m pip install Pillow
-- pip install django-countries
+2. git clone https://github.com/abdeladlshaheen/Crowd-Funding-Web-App.git
+3. python3 -m venv .venv
+4. source .venv/bin/activate
+5. python3 -m pip install django
+6. cd Crowd-Funding-Web-App/
+7. pip freeze > requirements.txt
+8. python3 manage.py runserver
+
 <hr/>
+
 ### Upgrade Packages
 
 Inside Crowd-Funding-Web-App directory, make sure that requirements.txt exists
