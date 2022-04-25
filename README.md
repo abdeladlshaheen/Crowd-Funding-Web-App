@@ -12,9 +12,8 @@
 
 <hr/>
 
-After installing packages, please go to the root directory of the project and type this command on your terminal.
+After installing packages, please go to the root directory of the project and type this command on your terminal (make sure that requirements.txt is in the root directory).
    - pip freeze > requirements.txt
-Make sure that requirements.txt is in the root directory
 
 ### Upgrade Packages
 
