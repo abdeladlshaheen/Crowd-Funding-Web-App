@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -45,10 +44,12 @@ INSTALLED_APPS = [
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+AUTH_USER_MODEL = 'users.User'
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+# ]
 
 CORS_ALLOW_METHODS = [
     "DELETE",
@@ -99,8 +100,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'crowdfunding',
-        'USER': 'root',
-        'PASSWORD': 'ali123456',
+        'USER': 'admin',
+        'PASSWORD': 'admin',
         'HOST': 'localhost',
         'PORT': '3306',
     }

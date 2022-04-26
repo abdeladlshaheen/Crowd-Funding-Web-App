@@ -2,9 +2,10 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django.shortcuts import reverse
 from django_countries.fields import CountryField
+from django.contrib.auth.models import AbstractUser
 
 
-class User(models.Model):
+class User(AbstractUser):
     phone_regex = RegexValidator(regex=r'^01[0125][0-9]{8}$', message="Invalid Phone Number.")
     password_regex = \
         RegexValidator(regex=r'^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[a-zA-Z\d@$.!%*#?&]',
