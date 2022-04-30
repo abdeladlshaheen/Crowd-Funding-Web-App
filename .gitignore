@@ -1,3 +1,4 @@
 users/static/images/*
 projects/static/images/*
 *.pyc
+.idea
