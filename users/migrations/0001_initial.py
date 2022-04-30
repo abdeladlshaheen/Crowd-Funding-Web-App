@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('profile_picture', models.ImageField(upload_to='Crowd-Funding-Web-App/users/static/images')),
                 ('birthday', models.DateField(null=True)),
                 ('fb_profile', models.URLField(null=True)),
-                ('country', django_countries.fields.CountryField(max_length=2, null=True)),
+                ('country', django_countries.fields.CountryField(null=True)),
             ],
         ),
     ]
