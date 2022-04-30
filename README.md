@@ -26,3 +26,8 @@ Inside Crowd-Funding-Web-App directory, make sure that requirements.txt exists
 
 1. go to settings.py to change database configurations to suit your local database
 2. check "Installing packages from requirements.txt" section
+
+<hr/>
+
+CREATE USER 'admin'@'localhost' IDENTIFIED BY 'admin';
+GRANT ALL PRIVILEGES ON crowdfunding.* TO 'admin'@'localhost';
