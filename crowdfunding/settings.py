@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'projects.apps.ProjectsConfig',
     "corsheaders",
+    'django_email_verification',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -98,8 +99,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'crowdfunding',
-        'USER': 'root',
-        'PASSWORD': '',
+        'USER': 'admin',
+        'PASSWORD': 'admin',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -146,3 +147,24 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+############# Email Cofiguration #################
+def verified_callback(user):
+    user.is_active = True
+
+EMAIL_VERIFIED_CALLBACK = verified_callback
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'AteamE2E@gmail.com'
+EMAIL_HOST_PASSWORD = 'yumdgwmpljtjbwnn'
+##
+EMAIL_FROM_ADDRESS = 'abdo.shaheen421@gmail.com'
+EMAIL_MAIL_SUBJECT = 'Verify Your Crowd Funding account'
+EMAIL_TOKEN_LIFE = 60 * 60 * 24
+EMAIL_MAIL_PLAIN = 'mail_body.txt'
+EMAIL_MAIL_HTML = 'mail_body.html'
+EMAIL_PAGE_TEMPLATE = 'confirm_template.html'
+EMAIL_PAGE_DOMAIN = 'http://localhost:8000/'
+EMAIL_USE_TLS= True
+#################################################

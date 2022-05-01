@@ -6,7 +6,7 @@ from .models import User
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+from django_email_verification import send_email
 import jwt
 import datetime
 
@@ -36,6 +36,8 @@ class RegisterView(APIView):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        user = User.objects.get(email=serializer.data['email'])
+        send_email(user)
         return Response(serializer.data)
 
 
@@ -46,18 +48,21 @@ class LoginView(APIView):
 
         user = User.objects.filter(email=email).first()
         if user is None:
-            raise AuthenticationFailed("User Not Found!")
+            raise AuthenticationFailed("This Credential not Found!")
 
         if password != user.password:
             if not user.check_password(password):
                 raise AuthenticationFailed("Incorrect Password!")
-
+        if not user.is_active:
+            raise AuthenticationFailed(
+                'You have to verify Your account First ')
         payload = {
             'id': user.id,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
             'iat': datetime.datetime.utcnow(),
         }
-
+        user.last_login = datetime.datetime.utcnow()
+        user.save()
         # token = jwt.encode(payload, 'secret', algorithm='HS256').decode('utf-8')
         token = jwt.encode(payload, 'secret', algorithm='HS256')
 
