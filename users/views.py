@@ -78,8 +78,13 @@ class LoginView(APIView):
 class LogoutView(APIView):
     def post(self, request):
         response = Response()
-        response.delete_cookie('jwt')
-        response.data = {
-            "detail": "Logged Out Successfully!"
-        }
+        if request.COOKIES.get('jwt'):
+            response.delete_cookie('jwt')
+            response.data = {
+                "detail": "Logged Out Successfully!"
+            }
+        else:
+            response.data = {
+                "detail": "You are not logged in!"
+            }
         return response
