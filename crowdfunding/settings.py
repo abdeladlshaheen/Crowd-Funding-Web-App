@@ -159,7 +159,7 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'AteamE2E@gmail.com'
 EMAIL_HOST_PASSWORD = 'yumdgwmpljtjbwnn'
 ##
-EMAIL_FROM_ADDRESS = 'abdo.shaheen421@gmail.com'
+EMAIL_FROM_ADDRESS = 'AteamE2E@gmail.com'
 EMAIL_MAIL_SUBJECT = 'Verify Your Crowd Funding account'
 EMAIL_TOKEN_LIFE = 60 * 60 * 24
 EMAIL_MAIL_PLAIN = 'mail_body.txt'
