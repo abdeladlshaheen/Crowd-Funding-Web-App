@@ -167,4 +167,7 @@ EMAIL_MAIL_HTML = 'mail_body.html'
 EMAIL_PAGE_TEMPLATE = 'confirm_template.html'
 EMAIL_PAGE_DOMAIN = 'http://localhost:8000/'
 EMAIL_USE_TLS= True
+###
+FRONTEND_URL='http://localhost:3000/'
+APP_SCHEME="Crowd-Funding-Web-App"
 #################################################
