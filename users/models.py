@@ -28,4 +28,4 @@ class User(AbstractUser):
         return f"{self.first_name} {self.last_name}"
 
     def get_absolute_url(self):
-        return reverse("user_profile", args=[self.id])
+        pass

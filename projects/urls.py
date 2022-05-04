@@ -1,3 +1,14 @@
 from django.urls import path, include
+from .views import CreateProjectView, ProjectListView, RateProjectView
+from rest_framework import routers
+from .views import ProjectViewSet
 
-urlpatterns = []
+router = routers.DefaultRouter()
+router.register('', ProjectViewSet)
+
+urlpatterns = [
+    path('', include(router.urls)),
+    # path('', ProjectListView.as_view()),
+    path('create', CreateProjectView.as_view()),
+    path('<int:id>/rate', RateProjectView.as_view()),
+]
