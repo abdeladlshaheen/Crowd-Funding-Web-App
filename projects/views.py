@@ -38,6 +38,7 @@ class CreateProjectView(APIView):
         #     tag_serializer.is_valid(raise_exception=True)
         #     tag_serializer.save()
         # request.data['tags'] =  
+        request.data['user'] = Auth.authenticate(request)['id']
         project_serializer = ProjectSerializer(data=request.data)
         project_serializer.is_valid(raise_exception=True)
         project_serializer.save()
