@@ -28,3 +28,13 @@ class UserSerializer(CountryFieldMixin, serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+
+
+class ResetPasswordEmailRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField(min_length=2)
+
+    redirect_url = serializers.CharField(max_length=500, required=False)
+
+    class Meta:
+        model = User
+        fields = ['email']
