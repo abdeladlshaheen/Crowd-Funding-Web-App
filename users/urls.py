@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework import routers
 # from .views import UserViewSet
-from .views import RegisterView, LoginView, UserView, LogoutView, RequestPasswordResetEmail, PasswordTokenCheckAPI
+from .views import RegisterView, LoginView, UserView, LogoutView, RequestPasswordResetEmail, PasswordTokenCheckAPI, SetNewPasswordAPIView
 from django_email_verification import urls as mail_urls
 from django_email_verification import send_email
 
@@ -18,6 +18,8 @@ urlpatterns = [
     path('send_email', send_email),
     path('request-reset-email/', RequestPasswordResetEmail.as_view(),
          name="request-reset-email"),
-     path('password-reset/<uidb64>/<token>/',
+    path('password-reset/<uidb64>/<token>/',
          PasswordTokenCheckAPI.as_view(), name='password-reset-confirm'),
+    path('password-reset-complete', SetNewPasswordAPIView.as_view(),
+         name='password-reset-complete')
 ]
