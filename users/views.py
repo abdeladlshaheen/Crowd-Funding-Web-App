@@ -10,7 +10,7 @@ from django_email_verification import send_email
 import jwt
 import datetime
 
-from rest_framework import generics, status, permissions
+from rest_framework import generics, status
 from .utils import Util
 from django.urls import reverse
 from django.utils.encoding import smart_str, force_str, smart_bytes, DjangoUnicodeDecodeError
