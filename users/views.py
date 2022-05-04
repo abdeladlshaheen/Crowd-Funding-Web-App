@@ -17,6 +17,11 @@ from django.utils.encoding import smart_str, force_str, smart_bytes, DjangoUnico
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.http import HttpResponsePermanentRedirect
+import os
+
+
+
 
 # class UserViewSet(viewsets.ModelViewSet):
 #     queryset = User.objects.all()
@@ -123,7 +128,9 @@ class RequestPasswordResetEmail(generics.GenericAPIView):
         return Response({'success': 'We have sent you a link to reset your password'}, status=status.HTTP_200_OK)
 
 
-
+class CustomRedirect(HttpResponsePermanentRedirect):
+    
+    allowed_schemes = [os.environ.get('APP_SCHEME'), 'http', 'https']
 class PasswordTokenCheckAPI(generics.GenericAPIView):
     serializer_class = SetNewPasswordSerializer
 
