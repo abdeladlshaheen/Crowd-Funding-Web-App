@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.parsers import MultiPartParser, FormParser
 # from rest_framework import viewsets
 from .serializers import UserSerializer
 from .models import User
@@ -32,6 +33,7 @@ class UserView(APIView):
 
 
 class RegisterView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
