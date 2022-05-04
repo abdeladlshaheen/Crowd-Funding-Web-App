@@ -1,24 +1,20 @@
 from django.shortcuts import render, get_object_or_404
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.parsers import MultiPartParser, FormParser
-# from rest_framework import viewsets
+from rest_framework import viewsets
 from .serializers import UserSerializer
 from .models import User
-
+from projects.models import Project
+from projects.serializers import ProjectSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django_email_verification import send_email
+
 import jwt
 import datetime
 
 
-# class UserViewSet(viewsets.ModelViewSet):
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
-
-
-class UserView(APIView):
-    def get(self, request):
+class Auth:
+    def authenticate(request):
         token = request.COOKIES.get('jwt')
         if not token:
             raise AuthenticationFailed("Unauthenticated!")
@@ -26,8 +22,26 @@ class UserView(APIView):
             payload = jwt.decode(token, 'secret', algorithms=['HS256'])
         except jwt.ExpiredSignatureError:
             raise AuthenticationFailed("Unauthenticated!")
+        return payload
 
-        user = User.objects.filter(id=payload['id']).first()
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+class UserListView(APIView):
+    # TODO: AttributeError: Got AttributeError when attempting to get a value for field `title` on serializer `ProjectSerializer`.
+    def get(self, request):
+        user = User.objects.all()
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+
+class UserView(APIView):
+    def get(self, request):
+        payload = Auth.authenticate(request)
+        user = get_object_or_404(User, pk=payload['id'])
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
@@ -38,8 +52,6 @@ class RegisterView(APIView):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        user = User.objects.get(email=serializer.data['email'])
-        send_email(user)
         return Response(serializer.data)
 
 
@@ -50,14 +62,12 @@ class LoginView(APIView):
 
         user = User.objects.filter(email=email).first()
         if user is None:
-            raise AuthenticationFailed("This Credential not Found!")
+            raise AuthenticationFailed("User Not Found!")
 
         if password != user.password:
             if not user.check_password(password):
                 raise AuthenticationFailed("Incorrect Password!")
-        if not user.is_active:
-            raise AuthenticationFailed(
-                'You have to verify Your account First ')
+
         payload = {
             'id': user.id,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
@@ -73,6 +83,7 @@ class LoginView(APIView):
         response.set_cookie(key='jwt', value=token, httponly=True)
         response.data = {
             "jwt": token,
+            "last_login": user.last_login
         }
         return response
 
@@ -80,8 +91,25 @@ class LoginView(APIView):
 class LogoutView(APIView):
     def post(self, request):
         response = Response()
-        response.delete_cookie('jwt')
+        payload = Auth.authenticate(request)
+        if payload:
+            response.delete_cookie('jwt')
+            message ="Logged out successfully!"
+        else:
+            message = "You are not logged in!"
         response.data = {
-            "detail": "Logged Out Successfully!"
+            "detail": message
         }
         return response
+
+
+class UpdateUserView(APIView):
+    def put(self, request):
+        payload = Auth.authenticate(request)
+        user = get_object_or_404(User, pk=payload['id'])
+
+        request.data.pop('email')   # He can edit all his data except for the email
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)

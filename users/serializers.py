@@ -11,7 +11,10 @@ class UserSerializer(CountryFieldMixin, serializers.ModelSerializer):
         extra_kwargs = {
             'password': {
                 'write_only': True
-            }
+            },
+            # 'email': {
+            #     'read_only': True
+            # }
         }
 
     def create(self, validated_data):
