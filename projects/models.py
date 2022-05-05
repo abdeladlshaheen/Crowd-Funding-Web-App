@@ -16,18 +16,19 @@ class Category(models.Model):
         return self.name
 
 
-class Rate(models.Model):
-    class RateChoices(models.IntegerChoices):
-        POOR = 1
-        FAIR = 2
-        GOOD = 3
-        VERYGOOD = 4
-        EXCELLENT = 5
+# class Rate(models.Model):
+#     class RateChoices(models.IntegerChoices):
+#         POOR = 1
+#         FAIR = 2
+#         GOOD = 3
+#         VERYGOOD = 4
+#         EXCELLENT = 5
 
-    rate = models.IntegerField(choices=RateChoices.choices, unique=True, primary_key=True)
+#     rate = models.IntegerField(
+#         choices=RateChoices.choices, unique=True, primary_key=True)
 
-    def __str__(self):
-        return f"Rate ({self.rate})"
+#     def __str__(self):
+#         return f"Rate ({self.rate})"
 
 
 class Project(models.Model):
@@ -35,8 +36,8 @@ class Project(models.Model):
     details = models.CharField(max_length=255)
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = models.DateTimeField(blank=True, null=True)
-    total_target = models.DecimalField(decimal_places=3, max_digits=19) # store numbers up to approximately one billion
-    donations = models.DecimalField(default=0, decimal_places=3, max_digits=19)
+    # store numbers up to approximately one billion
+    total_target = models.DecimalField(decimal_places=3, max_digits=19)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     tags = models.ManyToManyField(Tag)
@@ -50,8 +51,26 @@ class Project(models.Model):
         pass
 
 
+class ProjectDonation(models.Model):
+
+    # TODO:delete project or user , donation stays ... SET_NULL
+    # TODO: frontend ... required
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True)
+    donation = models.DecimalField(default=0, decimal_places=3, max_digits=19)
+    date = models.DateTimeField(auto_now_add=True)
+
+
 class UserRateProject(models.Model):
-    rate = models.ForeignKey(Rate, on_delete=models.CASCADE)
+    class RateChoices(models.IntegerChoices):
+        POOR = 1
+        FAIR = 2
+        GOOD = 3
+        VERYGOOD = 4
+        EXCELLENT = 5
+
+    rate = models.IntegerField(
+        choices=RateChoices.choices)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     # user = models.OneToOneField(User, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -68,4 +87,3 @@ class Comment(models.Model):
     comment = models.CharField(max_length=255)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    

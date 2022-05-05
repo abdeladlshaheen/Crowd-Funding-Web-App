@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Project, Picture, Comment, Tag, UserRateProject, Rate
+from .models import Project, Picture, Comment, ProjectDonation, Tag, UserRateProject
 
 
 class PictureSerializer(serializers.ModelSerializer):
@@ -14,12 +14,6 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ProjectSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Project
-        fields = "__all__"
-
-
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
@@ -29,4 +23,30 @@ class TagSerializer(serializers.ModelSerializer):
 class UserRateProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserRateProject
+        fields = "__all__"
+
+
+class UserDonationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectDonation
+        fields = "__all__"
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+    # nested serializers
+    # SlugRelatedField
+
+    tags = serializers.SlugRelatedField(
+        slug_field="name",
+        many=True,
+        read_only=True
+    )
+
+    category = serializers.SlugRelatedField(
+        slug_field="name",
+        read_only=True
+    )
+
+    class Meta:
+        model = Project
         fields = "__all__"

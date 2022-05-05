@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Project, Rate, UserRateProject
-from .serializers import ProjectSerializer, TagSerializer, UserRateProjectSerializer
+from .models import Project, UserRateProject
+from .serializers import PictureSerializer, ProjectSerializer, TagSerializer, UserDonationSerializer, UserRateProjectSerializer
 from decimal import Decimal
 from django.shortcuts import get_object_or_404
 
@@ -25,7 +25,8 @@ class ProjectListView(APIView):
 
 class CreateProjectView(APIView):
     def post(self, request):
-        pictures = request.data.pop('pictures', None) if 'pictures' in request.data else []
+        pictures = request.data.pop(
+            'pictures', None) if 'pictures' in request.data else []
         # TODO
         # tags = request.data.pop('tags', None) if 'tags' in request.data else []
         # array = []
@@ -37,7 +38,7 @@ class CreateProjectView(APIView):
         #     tag_serializer = TagSerializer(data={'name': tag})
         #     tag_serializer.is_valid(raise_exception=True)
         #     tag_serializer.save()
-        # request.data['tags'] =  
+        # request.data['tags'] =
         request.data['user'] = Auth.authenticate(request)['id']
         project_serializer = ProjectSerializer(data=request.data)
         project_serializer.is_valid(raise_exception=True)
@@ -57,11 +58,56 @@ class RateProjectView(APIView):
         project_id = id if get_object_or_404(Project, pk=id) else None
         rate = request.data['rate']
         user_id = Auth.authenticate(request)['id']
-        user_rate_project = UserRateProject.objects.filter(user=user_id, project=project_id).first()
+        user_rate_project = UserRateProject.objects.filter(
+            user=user_id, project=project_id).first()
         if user_rate_project:
-            serializer = UserRateProjectSerializer(user_rate_project, data={'rate': rate}, partial=True)
+            serializer = UserRateProjectSerializer(
+                user_rate_project, data={'rate': rate}, partial=True)
         else:
-            serializer = UserRateProjectSerializer(data={'rate': rate, 'user': user_id, 'project': project_id})
+            serializer = UserRateProjectSerializer(
+                data={'rate': rate, 'user': user_id, 'project': project_id})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"detail": serializer.data})
+
+
+def related_projects(project):
+    related = []
+    project_tags = Project.objects.filter(
+        id=project.id).values_list('tags', flat=True)
+
+    projects = Project.objects.all()
+    for pro in projects:
+        tags = Project.objects.filter(id=pro.id).values_list('tags', flat=True)
+
+        if set(tags).intersection(project_tags):
+            related.append(pro)
+
+    return related
+
+
+class ProjectDetails(APIView):
+    def get(self, request, id):
+        project = Project.objects.get(pk=id)
+        # pics
+        related = related_projects(project)
+        picture = project.picture_set.all().values_list('picture', flat=True)
+        # rate
+        #TODO: average
+        rate = project.userrateproject_set.all().values_list('rate', flat=True)
+        # donation
+        donation = project.projectdonation_set.all().values_list('donation', flat=True)
+
+        # serializers
+        project_serializer = ProjectSerializer(project)
+
+        related_serializer = ProjectSerializer(related, many=True)
+        # wrap all serializers in one object
+        context = {
+            "project": project_serializer.data,
+            "picture": picture,
+            "donation": donation,
+            "rate": rate,
+            "related": related_serializer.data
+        }
+        return Response(data=context)
