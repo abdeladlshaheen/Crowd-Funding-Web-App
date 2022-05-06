@@ -82,8 +82,17 @@ class Picture(models.Model):
         blank=True, null=True, upload_to="projects/static/images")
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
-
+    
+    
 class Comment(models.Model):
-    comment = models.CharField(max_length=255)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    comment = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    comment_reports = models.SmallIntegerField(default=0)
+    is_reported = models.BooleanField(default=False)
+    def __str__(self):
+        return f"{self.user} on {self.project}"
+    
+    
