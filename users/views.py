@@ -1,14 +1,18 @@
 from django.shortcuts import render, get_object_or_404
 from rest_framework.exceptions import AuthenticationFailed
-# from rest_framework import viewsets
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework import viewsets
 from .serializers import UserSerializer, ResetPasswordEmailRequestSerializer, SetNewPasswordSerializer
 from .models import User
-
+from projects.models import Project
+from projects.serializers import ProjectSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django_email_verification import send_email
+
 import jwt
 import datetime
+import os
 
 from rest_framework import generics, status
 from .utils import Util
@@ -18,18 +22,10 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.http import HttpResponsePermanentRedirect
-import os
 
 
-
-
-# class UserViewSet(viewsets.ModelViewSet):
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
-
-
-class UserView(APIView):
-    def get(self, request):
+class Auth:
+    def authenticate(request):
         token = request.COOKIES.get('jwt')
         if not token:
             raise AuthenticationFailed("Unauthenticated!")
@@ -37,52 +33,98 @@ class UserView(APIView):
             payload = jwt.decode(token, 'secret', algorithms=['HS256'])
         except jwt.ExpiredSignatureError:
             raise AuthenticationFailed("Unauthenticated!")
+        return payload
 
-        user = User.objects.filter(id=payload['id']).first()
+    def check_status(request):
+        token = request.COOKIES.get('jwt')
+        if token:
+            try:
+                # check if the token has expired
+                # if it cannot be decoded successfully, it means that token has expired
+                payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+                raise AuthenticationFailed("You are already logged in!")
+            except jwt.ExpiredSignatureError:
+                pass
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+class UserListView(APIView):
+    # TODO: AttributeError: Got AttributeError when attempting to get a value for field `title` on serializer `ProjectSerializer`.
+    def get(self, request):
+        user = User.objects.all()
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+
+class UserView(APIView):
+    def get(self, request):
+        payload = Auth.authenticate(request)
+        user = get_object_or_404(User, pk=payload['id'])
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+
+class GetUserView(APIView):
+    def get(self, request, id):
+        user = get_object_or_404(User, pk=id)
+        if user.is_superuser or user.is_staff:
+            raise AuthenticationFailed("Unauthenticated!")
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
 
 class RegisterView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+
     def post(self, request):
+        Auth.check_status(request)
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
         user = User.objects.get(email=serializer.data['email'])
         send_email(user)
+
         return Response(serializer.data)
 
 
 class LoginView(APIView):
     def post(self, request):
+        Auth.check_status(request)
+
         email = request.data['email']
         password = request.data['password']
 
         user = User.objects.filter(email=email).first()
         if user is None:
-            raise AuthenticationFailed("This Credential not Found!")
+            raise AuthenticationFailed("User Not Found!")
 
         if password != user.password:
             if not user.check_password(password):
                 raise AuthenticationFailed("Incorrect Password!")
+
         if not user.is_active:
             raise AuthenticationFailed(
-                'You have to verify Your account First ')
+                'You have to verify your account first!')
+
         payload = {
             'id': user.id,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1),
             'iat': datetime.datetime.utcnow(),
         }
         user.last_login = datetime.datetime.utcnow()
         user.save()
         # token = jwt.encode(payload, 'secret', algorithm='HS256').decode('utf-8')
         token = jwt.encode(payload, 'secret', algorithm='HS256')
-
         response = Response()
-
         response.set_cookie(key='jwt', value=token, httponly=True)
         response.data = {
             "jwt": token,
+            "last_login": user.last_login
         }
         return response
 
@@ -90,16 +132,28 @@ class LoginView(APIView):
 class LogoutView(APIView):
     def post(self, request):
         response = Response()
-        if request.COOKIES.get('jwt'):
+        payload = Auth.authenticate(request)
+        if payload:
             response.delete_cookie('jwt')
-            response.data = {
-                "detail": "Logged Out Successfully!"
-            }
+            message = "Logged out successfully!"
         else:
-            response.data = {
-                "detail": "You are not logged in!"
-            }
+            message = "You are not logged in!"
+        response.data = {
+            "detail": message
+        }
         return response
+
+
+class UpdateUserView(APIView):
+    def put(self, request):
+        payload = Auth.authenticate(request)
+        user = get_object_or_404(User, pk=payload['id'])
+
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
 
 class RequestPasswordResetEmail(generics.GenericAPIView):
     serializer_class = ResetPasswordEmailRequestSerializer
@@ -129,8 +183,10 @@ class RequestPasswordResetEmail(generics.GenericAPIView):
 
 
 class CustomRedirect(HttpResponsePermanentRedirect):
-    
+
     allowed_schemes = [os.environ.get('APP_SCHEME'), 'http', 'https']
+
+
 class PasswordTokenCheckAPI(generics.GenericAPIView):
     serializer_class = SetNewPasswordSerializer
 
@@ -157,9 +213,10 @@ class PasswordTokenCheckAPI(generics.GenericAPIView):
             try:
                 if not PasswordResetTokenGenerator().check_token(user):
                     return CustomRedirect(redirect_url+'?token_valid=False')
-                    
+
             except UnboundLocalError as e:
                 return Response({'error': 'Token is not valid, please request a new one'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class SetNewPasswordAPIView(generics.GenericAPIView):
     serializer_class = SetNewPasswordSerializer
@@ -168,4 +225,3 @@ class SetNewPasswordAPIView(generics.GenericAPIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response({'success': True, 'message': 'Password reset success'}, status=status.HTTP_200_OK)
-

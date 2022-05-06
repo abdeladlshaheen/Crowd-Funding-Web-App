@@ -7,6 +7,7 @@ from django.utils.encoding import smart_str, force_str, smart_bytes, DjangoUnico
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework.exceptions import AuthenticationFailed
 
+
 class UserSerializer(CountryFieldMixin, serializers.ModelSerializer):
     class Meta:
         model = User
@@ -14,7 +15,10 @@ class UserSerializer(CountryFieldMixin, serializers.ModelSerializer):
         extra_kwargs = {
             'password': {
                 'write_only': True
-            }
+            },
+            # 'email': {
+            #     'read_only': True
+            # }
         }
 
     def create(self, validated_data):
@@ -32,6 +36,13 @@ class UserSerializer(CountryFieldMixin, serializers.ModelSerializer):
         instance.save()
         return instance
 
+    def update(self, instance, validated_data):
+        if 'email' in validated_data:
+            validated_data.pop('email', None)
+
+        instance = super(UserSerializer, self).update(instance, validated_data)
+        return instance
+
 
 class ResetPasswordEmailRequestSerializer(serializers.Serializer):
     email = serializers.EmailField(min_length=2)
@@ -41,6 +52,7 @@ class ResetPasswordEmailRequestSerializer(serializers.Serializer):
     class Meta:
         model = User
         fields = ['email']
+
 
 class SetNewPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(
