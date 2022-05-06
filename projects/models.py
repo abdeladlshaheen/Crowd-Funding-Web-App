@@ -24,8 +24,8 @@ class Category(models.Model):
 #         VERYGOOD = 4
 #         EXCELLENT = 5
 
-    rate = models.IntegerField(
-        choices=RateChoices.choices, unique=True, primary_key=True)
+    # rate = models.IntegerField(
+    #     choices=RateChoices.choices, unique=True, primary_key=True)
 #     rate = models.IntegerField(
 #         choices=RateChoices.choices, unique=True, primary_key=True)
 
