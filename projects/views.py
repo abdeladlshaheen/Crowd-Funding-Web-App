@@ -1,14 +1,23 @@
 from django.shortcuts import render
+from requests import request
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Project, UserRateProject
-from .serializers import PictureSerializer, ProjectSerializer, TagSerializer, UserDonationSerializer, UserRateProjectSerializer
+from .models import Project, UserRateProject, Comment
+from .serializers import PictureSerializer, ProjectSerializer, TagSerializer, UserDonationSerializer, UserRateProjectSerializer, CommentSerializer
 from decimal import Decimal
 from django.shortcuts import get_object_or_404
 
 from users.views import Auth
 from rest_framework import viewsets
-
+from rest_framework.generics import (
+    RetrieveAPIView,  
+    ListAPIView
+)
+from rest_framework.filters import (
+    SearchFilter, 
+    OrderingFilter
+)
+from django.db.models import Q
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
@@ -111,3 +120,27 @@ class ProjectDetails(APIView):
             "related": related_serializer.data
         }
         return Response(data=context)
+
+
+
+class CommentDetailAPIView(RetrieveAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    
+    
+class CommentListAPIView(ListAPIView):
+    serializer_class = CommentSerializer()
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['comment', 'user__first_name']
+    
+    def get_queryset(self, *args, **kwargs):
+        queryset_list = Comment.objects.all()
+        query = self.request.GET.get("q")
+        if query:
+            queryset_list = queryset_list.filter(
+                    Q(comment__icontains=query) |
+                    Q(user__first_name__icontains=query) |
+                    Q(user__last_name__icontains=query)
+            )
+        return queryset_list
+
