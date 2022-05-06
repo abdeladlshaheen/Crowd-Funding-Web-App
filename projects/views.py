@@ -44,9 +44,9 @@ class CreateProjectView(APIView):
         project_serializer.is_valid(raise_exception=True)
         project_serializer.save()
 
-        for i in range(len(pictures)):
+        for picture in pictures:
             picture_serializer = PictureSerializer(
-                data={'project': project_serializer.data['id'], 'picture': pictures[i]})
+                data={'project': project_serializer.data['id'], 'picture': picture})
             picture_serializer.is_valid(raise_exception=True)
             picture_serializer.save()
 

@@ -36,6 +36,13 @@ class UserSerializer(CountryFieldMixin, serializers.ModelSerializer):
         instance.save()
         return instance
 
+    def update(self, instance, validated_data):
+        if 'email' in validated_data:
+            validated_data.pop('email', None)
+
+        instance = super(UserSerializer, self).update(instance, validated_data)
+        return instance
+
 
 class ResetPasswordEmailRequestSerializer(serializers.Serializer):
     email = serializers.EmailField(min_length=2)

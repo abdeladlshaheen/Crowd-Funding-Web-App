@@ -35,6 +35,17 @@ class Auth:
             raise AuthenticationFailed("Unauthenticated!")
         return payload
 
+    def check_status(request):
+        token = request.COOKIES.get('jwt')
+        if token:
+            try:
+                # check if the token has expired
+                # if it cannot be decoded successfully, it means that token has expired
+                payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+                raise AuthenticationFailed("You are already logged in!")
+            except jwt.ExpiredSignatureError:
+                pass
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -57,10 +68,20 @@ class UserView(APIView):
         return Response(serializer.data)
 
 
+class GetUserView(APIView):
+    def get(self, request, id):
+        user = get_object_or_404(User, pk=id)
+        if user.is_superuser or user.is_staff:
+            raise AuthenticationFailed("Unauthenticated!")
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+
 class RegisterView(APIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
+        Auth.check_status(request)
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -73,43 +94,38 @@ class RegisterView(APIView):
 
 class LoginView(APIView):
     def post(self, request):
-        response = Response()
-        token = request.COOKIES.get('jwt')
-        if token:
-            response.data = {
-                "detail": "You are already logged in!"
-            }
-        else:
-            email = request.data['email']
-            password = request.data['password']
+        Auth.check_status(request)
 
-            user = User.objects.filter(email=email).first()
-            if user is None:
-                raise AuthenticationFailed("User Not Found!")
+        email = request.data['email']
+        password = request.data['password']
 
-            if password != user.password:
-                if not user.check_password(password):
-                    raise AuthenticationFailed("Incorrect Password!")
+        user = User.objects.filter(email=email).first()
+        if user is None:
+            raise AuthenticationFailed("User Not Found!")
 
-            if not user.is_active:
-                raise AuthenticationFailed(
-                    'You have to verify your account first!')
+        if password != user.password:
+            if not user.check_password(password):
+                raise AuthenticationFailed("Incorrect Password!")
 
-            payload = {
-                'id': user.id,
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1),
-                'iat': datetime.datetime.utcnow(),
-            }
-            user.last_login = datetime.datetime.utcnow()
-            user.save()
-            # token = jwt.encode(payload, 'secret', algorithm='HS256').decode('utf-8')
-            token = jwt.encode(payload, 'secret', algorithm='HS256')
+        if not user.is_active:
+            raise AuthenticationFailed(
+                'You have to verify your account first!')
 
-            response.set_cookie(key='jwt', value=token, httponly=True)
-            response.data = {
-                "jwt": token,
-                "last_login": user.last_login
-            }
+        payload = {
+            'id': user.id,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1),
+            'iat': datetime.datetime.utcnow(),
+        }
+        user.last_login = datetime.datetime.utcnow()
+        user.save()
+        # token = jwt.encode(payload, 'secret', algorithm='HS256').decode('utf-8')
+        token = jwt.encode(payload, 'secret', algorithm='HS256')
+
+        response.set_cookie(key='jwt', value=token, httponly=True)
+        response.data = {
+            "jwt": token,
+            "last_login": user.last_login
+        }
         return response
 
 
@@ -133,8 +149,6 @@ class UpdateUserView(APIView):
         payload = Auth.authenticate(request)
         user = get_object_or_404(User, pk=payload['id'])
 
-        # He can edit all his data except for the email
-        request.data.pop('email')
         serializer = UserSerializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
