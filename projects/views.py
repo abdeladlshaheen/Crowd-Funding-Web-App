@@ -4,8 +4,8 @@ import json
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Project, Rate, UserRateProject
-from .serializers import ProjectSerializer, TagSerializer, UserRateProjectSerializer
+from .models import Project, UserRateProject
+from .serializers import PictureSerializer, ProjectSerializer, TagSerializer, UserDonationSerializer, UserRateProjectSerializer
 from decimal import Decimal
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
@@ -48,9 +48,9 @@ class CreateProjectView(APIView):
         project_serializer.is_valid(raise_exception=True)
         project_serializer.save()
 
-        for i in range(len(pictures)):
+        for picture in pictures:
             picture_serializer = PictureSerializer(
-                data={'project': project_serializer.data['id'], 'picture': pictures[i]})
+                data={'project': project_serializer.data['id'], 'picture': picture})
             picture_serializer.is_valid(raise_exception=True)
             picture_serializer.save()
 
@@ -92,3 +92,45 @@ def cancel_project(request, project_id):
 
 def check_cancel_project(donnation, total):
     return donnation < (Decimal('0.25') * total)
+
+
+def related_projects(project):
+    related = []
+    project_tags = Project.objects.filter(
+        id=project.id).values_list('tags', flat=True)
+
+    projects = Project.objects.all()
+    for pro in projects:
+        tags = Project.objects.filter(id=pro.id).values_list('tags', flat=True)
+
+        if set(tags).intersection(project_tags):
+            related.append(pro)
+
+    return related
+
+
+class ProjectDetails(APIView):
+    def get(self, request, id):
+        project = Project.objects.get(pk=id)
+        # pics
+        related = related_projects(project)
+        picture = project.picture_set.all().values_list('picture', flat=True)
+        # rate
+        #TODO: average
+        rate = project.userrateproject_set.all().values_list('rate', flat=True)
+        # donation
+        donation = project.projectdonation_set.all().values_list('donation', flat=True)
+
+        # serializers
+        project_serializer = ProjectSerializer(project)
+
+        related_serializer = ProjectSerializer(related, many=True)
+        # wrap all serializers in one object
+        context = {
+            "project": project_serializer.data,
+            "picture": picture,
+            "donation": donation,
+            "rate": rate,
+            "related": related_serializer.data
+        }
+        return Response(data=context)
