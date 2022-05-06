@@ -1,3 +1,6 @@
+from asyncio.windows_events import NULL
+from decimal import Decimal
+import json
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -5,6 +8,7 @@ from .models import Project, Rate, UserRateProject
 from .serializers import ProjectSerializer, TagSerializer, UserRateProjectSerializer
 from decimal import Decimal
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
 
 from users.views import Auth
 from rest_framework import viewsets
@@ -25,7 +29,8 @@ class ProjectListView(APIView):
 
 class CreateProjectView(APIView):
     def post(self, request):
-        pictures = request.data.pop('pictures', None) if 'pictures' in request.data else []
+        pictures = request.data.pop(
+            'pictures', None) if 'pictures' in request.data else []
         # TODO
         # tags = request.data.pop('tags', None) if 'tags' in request.data else []
         # array = []
@@ -37,7 +42,7 @@ class CreateProjectView(APIView):
         #     tag_serializer = TagSerializer(data={'name': tag})
         #     tag_serializer.is_valid(raise_exception=True)
         #     tag_serializer.save()
-        # request.data['tags'] =  
+        # request.data['tags'] =
         request.data['user'] = Auth.authenticate(request)['id']
         project_serializer = ProjectSerializer(data=request.data)
         project_serializer.is_valid(raise_exception=True)
@@ -57,11 +62,33 @@ class RateProjectView(APIView):
         project_id = id if get_object_or_404(Project, pk=id) else None
         rate = request.data['rate']
         user_id = Auth.authenticate(request)['id']
-        user_rate_project = UserRateProject.objects.filter(user=user_id, project=project_id).first()
+        user_rate_project = UserRateProject.objects.filter(
+            user=user_id, project=project_id).first()
         if user_rate_project:
-            serializer = UserRateProjectSerializer(user_rate_project, data={'rate': rate}, partial=True)
+            serializer = UserRateProjectSerializer(
+                user_rate_project, data={'rate': rate}, partial=True)
         else:
-            serializer = UserRateProjectSerializer(data={'rate': rate, 'user': user_id, 'project': project_id})
+            serializer = UserRateProjectSerializer(
+                data={'rate': rate, 'user': user_id, 'project': project_id})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"detail": serializer.data})
+
+# total_target
+# donations
+# user
+
+
+def cancel_project(request, project_id):
+    user_id = Auth.authenticate(request)['id']
+    project = get_object_or_404(Project, pk=project_id)
+    res = Response()
+    if check_cancel_project(project.donations, project.total_target) and project.user_id == user_id:
+        Project.objects.filter(pk=project_id).update(is_canceled=True)
+        return HttpResponse(json.dumps({'success': 'Project Is Canceled Successfully'}), content_type="application/json")
+    else:
+        return HttpResponse(json.dumps({'fail': 'This project Can\'t be canceled'}), content_type="application/json")
+
+
+def check_cancel_project(donnation, total):
+    return donnation < (Decimal('0.25') * total)
