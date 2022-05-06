@@ -1,3 +1,6 @@
+from asyncio.windows_events import NULL
+from decimal import Decimal
+import json
 from django.shortcuts import render
 from requests import request
 from rest_framework.views import APIView
@@ -6,6 +9,7 @@ from .models import Project, UserRateProject, Comment
 from .serializers import PictureSerializer, ProjectSerializer, TagSerializer, UserDonationSerializer, UserRateProjectSerializer, CommentSerializer
 from decimal import Decimal
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
 
 from users.views import Auth
 from rest_framework import viewsets
@@ -78,6 +82,25 @@ class RateProjectView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"detail": serializer.data})
+
+# total_target
+# donations
+# user
+
+
+def cancel_project(request, project_id):
+    user_id = Auth.authenticate(request)['id']
+    project = get_object_or_404(Project, pk=project_id)
+    res = Response()
+    if check_cancel_project(project.donations, project.total_target) and project.user_id == user_id:
+        Project.objects.filter(pk=project_id).update(is_canceled=True)
+        return HttpResponse(json.dumps({'success': 'Project Is Canceled Successfully'}), content_type="application/json")
+    else:
+        return HttpResponse(json.dumps({'fail': 'This project Can\'t be canceled'}), content_type="application/json")
+
+
+def check_cancel_project(donnation, total):
+    return donnation < (Decimal('0.25') * total)
 
 
 def related_projects(project):

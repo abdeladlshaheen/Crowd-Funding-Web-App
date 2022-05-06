@@ -24,6 +24,8 @@ class Category(models.Model):
 #         VERYGOOD = 4
 #         EXCELLENT = 5
 
+    # rate = models.IntegerField(
+    #     choices=RateChoices.choices, unique=True, primary_key=True)
 #     rate = models.IntegerField(
 #         choices=RateChoices.choices, unique=True, primary_key=True)
 
@@ -38,11 +40,13 @@ class Project(models.Model):
     end_time = models.DateTimeField(blank=True, null=True)
     # store numbers up to approximately one billion
     total_target = models.DecimalField(decimal_places=3, max_digits=19)
+    donations = models.DecimalField(default=0, decimal_places=3, max_digits=19)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     tags = models.ManyToManyField(Tag)
     thumbnail = models.ImageField(
         blank=True, null=True, upload_to="projects/static/images")
+    is_canceled = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
