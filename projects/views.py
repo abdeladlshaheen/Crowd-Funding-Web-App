@@ -23,6 +23,8 @@ from rest_framework.filters import (
     OrderingFilter
 )
 from django.db.models import Q, Sum
+from rest_framework.decorators import api_view
+from rest_framework import status
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
@@ -168,17 +170,32 @@ class ProjectDetails(APIView):
         return Response(data=context)
 
 
-class CommentDetailAPIView(RetrieveAPIView):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
 
+@api_view(['GET','POST'])
+def comment_post_api(request, id):
+    try:
+        project = get_object_or_404(Project, id=id)
+    except Project.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    if request.method == 'GET':
+        comments = Comment.objects.filter(project=project)
+        serializers = CommentSerializer(comments,many=True)
+        return Response(serializers.data, status=status.HTTP_200_OK)
+    if request.method == 'POST':
+        serializer = CommentSerializer(data=request.data, context={'request':request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
+    
 class CommentListAPIView(ListAPIView):
-    serializer_class = CommentSerializer()
+    serializer_class = CommentSerializer
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['comment', 'user__first_name']
-
-    def get_queryset(self, *args, **kwargs):
+    
+    def get_queryset(self):
         queryset_list = Comment.objects.all()
         query = self.request.GET.get("q")
         if query:
@@ -188,6 +205,9 @@ class CommentListAPIView(ListAPIView):
                 Q(user__last_name__icontains=query)
             )
         return queryset_list
+    
+    
+
 
 
 class DonationView(APIView):

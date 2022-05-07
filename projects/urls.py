@@ -1,8 +1,10 @@
-from django.urls import path, include
-from .views import CreateProjectView, DonationView, ProjectDetails, ProjectListView, RateProjectView, cancel_project, CommentListAPIView, CommentDetailAPIView
-from rest_framework import routers
-from .views import ProjectViewSet
 from django.urls import re_path
+from .views import ProjectViewSet
+from rest_framework import routers
+from .views import CreateProjectView, ProjectDetails, ProjectListView, RateProjectView, cancel_project, CommentListAPIView, comment_post_api
+from .views import CreateProjectView, DonationView, ProjectDetails, ProjectListView, RateProjectView, cancel_project, CommentListAPIView
+from django.urls import path, include
+
 
 router = routers.DefaultRouter()
 router.register('', ProjectViewSet)
@@ -15,7 +17,9 @@ urlpatterns = [
     path('<int:project_id>/cancel', cancel_project),
     path('<int:id>', ProjectDetails.as_view()),
     #path("comment/<int:pid>", Comment.as_view(), name="comment"),
-    re_path(r'^comments/$', CommentListAPIView.as_view(), name='List'), 
-    re_path(r'^comments/(?P<id>\d+)/$', CommentDetailAPIView.as_view(), name='thread'),   
-    path('donate/<int:id>', DonationView.as_view())
+    path('donate/<int:id>', DonationView.as_view()),
+    path('comments', CommentListAPIView.as_view()),
+    path('comment/<int:id>', comment_post_api),
+
+
 ]
