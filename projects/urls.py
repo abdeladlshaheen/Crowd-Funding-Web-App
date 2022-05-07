@@ -1,7 +1,8 @@
 from django.urls import path, include
-from .views import CreateProjectView, ProjectDetails, ProjectListView, RateProjectView, cancel_project
 from rest_framework import routers
 from .views import ProjectViewSet
+from .views import CreateProjectView, DonationView, ProjectDetails, ProjectListView, RateProjectView, cancel_project, CommentListAPIView, comment_project_api
+
 
 router = routers.DefaultRouter()
 router.register('', ProjectViewSet)
@@ -12,5 +13,9 @@ urlpatterns = [
     path('create', CreateProjectView.as_view()),
     path('<int:id>/rate', RateProjectView.as_view()),
     path('<int:project_id>/cancel', cancel_project),
-    path('<int:id>', ProjectDetails.as_view())
+    path('<int:id>', ProjectDetails.as_view()),
+    path('donate/<int:id>', DonationView.as_view()),
+    path('comments', CommentListAPIView.as_view()),
+    path('comment/<int:id>', comment_project_api),
+ 
 ]

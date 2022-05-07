@@ -26,7 +26,7 @@ class UserRateProjectSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class UserDonationSerializer(serializers.ModelSerializer):
+class ProjectDonationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectDonation
         fields = "__all__"
