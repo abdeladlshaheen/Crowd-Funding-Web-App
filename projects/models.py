@@ -40,7 +40,7 @@ class Project(models.Model):
     end_time = models.DateTimeField(blank=True, null=True)
     # store numbers up to approximately one billion
     total_target = models.DecimalField(decimal_places=3, max_digits=19)
-    donations = models.DecimalField(default=0, decimal_places=3, max_digits=19)
+    # donations = models.DecimalField(default=0, decimal_places=3, max_digits=19)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     tags = models.ManyToManyField(Tag)
