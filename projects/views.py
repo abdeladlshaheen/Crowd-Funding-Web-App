@@ -1,13 +1,11 @@
 from asyncio.windows_events import NULL
 from decimal import Decimal
 import json
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Project, UserRateProject
 from .serializers import PictureSerializer, ProjectSerializer, TagSerializer, UserDonationSerializer, UserRateProjectSerializer
-from decimal import Decimal
-from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 
 from users.views import Auth

@@ -16,23 +16,6 @@ class Category(models.Model):
         return self.name
 
 
-# class Rate(models.Model):
-#     class RateChoices(models.IntegerChoices):
-#         POOR = 1
-#         FAIR = 2
-#         GOOD = 3
-#         VERYGOOD = 4
-#         EXCELLENT = 5
-
-    # rate = models.IntegerField(
-    #     choices=RateChoices.choices, unique=True, primary_key=True)
-#     rate = models.IntegerField(
-#         choices=RateChoices.choices, unique=True, primary_key=True)
-
-#     def __str__(self):
-#         return f"Rate ({self.rate})"
-
-
 class Project(models.Model):
     title = models.CharField(max_length=100, unique=True)
     details = models.CharField(max_length=255)
