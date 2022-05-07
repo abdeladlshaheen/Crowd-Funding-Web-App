@@ -1,3 +1,4 @@
+from urllib import response
 from django.shortcuts import render, get_object_or_404
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -153,6 +154,15 @@ class UpdateUserView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+class DeleteUserView(APIView):
+    def delete(self, request):
+        payload = Auth.authenticate(request)
+        user = get_object_or_404(User, pk=payload['id'])
+        user.delete()
+        return Response({"response":"Delete"})
+
 
 
 class RequestPasswordResetEmail(generics.GenericAPIView):
