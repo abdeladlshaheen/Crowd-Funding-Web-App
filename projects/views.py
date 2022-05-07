@@ -1,12 +1,13 @@
 # from asyncio.windows_events import NULL
+from datetime import datetime, timezone, tzinfo
 from decimal import Decimal
 import json
 from django.shortcuts import render
 from requests import request
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Project, UserRateProject, Comment
-from .serializers import PictureSerializer, ProjectSerializer, TagSerializer, UserDonationSerializer, UserRateProjectSerializer, CommentSerializer
+from .models import Project, ProjectDonation, Tag, UserRateProject, Comment
+from .serializers import PictureSerializer, ProjectSerializer, TagSerializer, ProjectDonationSerializer, UserRateProjectSerializer, CommentSerializer
 from decimal import Decimal
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
@@ -14,14 +15,15 @@ from django.http import HttpResponse
 from users.views import Auth
 from rest_framework import viewsets
 from rest_framework.generics import (
-    RetrieveAPIView,  
+    RetrieveAPIView,
     ListAPIView
 )
 from rest_framework.filters import (
-    SearchFilter, 
+    SearchFilter,
     OrderingFilter
 )
-from django.db.models import Q
+from django.db.models import Q, Sum
+
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
@@ -38,8 +40,10 @@ class ProjectListView(APIView):
 
 class CreateProjectView(APIView):
     def post(self, request):
-        pictures = request.data.getlist('pictures') if 'pictures' in request.data else []
-        tags = request.data.getlist('tags[]') if 'tags[]' in request.data else []
+        pictures = request.data.getlist(
+            'pictures') if 'pictures' in request.data else []
+        tags = request.data.getlist(
+            'tags[]') if 'tags[]' in request.data else []
         tags_list = []
 
         # the user who creates the project must be the one who is already logged in
@@ -55,7 +59,7 @@ class CreateProjectView(APIView):
 
         project_instance = get_object_or_404(
             Project, pk=project_serializer.data['id'])
-        
+
         # store multiple tags
         # if it doesn't exist, create a new one
         for tag in tags:
@@ -164,25 +168,56 @@ class ProjectDetails(APIView):
         return Response(data=context)
 
 
-
 class CommentDetailAPIView(RetrieveAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    
-    
+
+
 class CommentListAPIView(ListAPIView):
     serializer_class = CommentSerializer()
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['comment', 'user__first_name']
-    
+
     def get_queryset(self, *args, **kwargs):
         queryset_list = Comment.objects.all()
         query = self.request.GET.get("q")
         if query:
             queryset_list = queryset_list.filter(
-                    Q(comment__icontains=query) |
-                    Q(user__first_name__icontains=query) |
-                    Q(user__last_name__icontains=query)
+                Q(comment__icontains=query) |
+                Q(user__first_name__icontains=query) |
+                Q(user__last_name__icontains=query)
             )
         return queryset_list
 
+
+class DonationView(APIView):
+    def post(self, request, id):
+        # user_id, project_id, project instance & current_donation
+        user_id = Auth.authenticate(request)['id']
+        project_id = id if get_object_or_404(Project, pk=id) else None
+        project = get_object_or_404(Project, pk=id)
+        current_project_donations = ProjectDonation.objects.filter(
+            project=project_id).aggregate(Sum('donation'))
+
+        # get donation from request
+        donation = request.data['donation']
+
+        # start checking
+        if Decimal(donation) < 1:
+            return Response({"detail": "Making nullish or negative donation is prohibited"})
+
+        serializer = ProjectDonationSerializer(
+            data={'donation': donation, 'user': user_id, 'project': project_id})
+
+        if project.end_time < datetime.now().replace(tzinfo=timezone.utc):
+            return Response(
+                {"detail": "sorry, you should not make a donation in a terminated project"})
+
+        serializer.is_valid(raise_exception=True)
+
+        if(current_project_donations["donation__sum"] + Decimal(serializer.validated_data["donation"]) > project.total_target):
+            return Response(
+                {"detail": "sorry, project total target reached"})
+
+        serializer.save()
+        return Response({"detail": serializer.data})
