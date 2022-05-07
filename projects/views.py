@@ -13,10 +13,8 @@ from django.http import HttpResponse
 
 from users.views import Auth
 from rest_framework import viewsets
-from rest_framework.generics import (
-    RetrieveAPIView,  
-    ListAPIView
-)
+from rest_framework.generics import ListAPIView
+
 from rest_framework.filters import (
     SearchFilter, 
     OrderingFilter
@@ -168,7 +166,7 @@ class ProjectDetails(APIView):
 
 
 @api_view(['GET','POST'])
-def comment_post_api(request, id):
+def comment_project_api(request, id):
     try:
         project = get_object_or_404(Project, id=id)
     except Project.DoesNotExist:

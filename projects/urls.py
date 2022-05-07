@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import CreateProjectView, ProjectDetails, ProjectListView, RateProjectView, cancel_project, CommentListAPIView, comment_post_api
+from .views import CreateProjectView, ProjectDetails, ProjectListView, RateProjectView, cancel_project, CommentListAPIView, comment_project_api
 from rest_framework import routers
 from .views import ProjectViewSet
 from django.urls import re_path
@@ -15,7 +15,7 @@ urlpatterns = [
     path('<int:project_id>/cancel', cancel_project),
     path('<int:id>', ProjectDetails.as_view()),
     path('comments', CommentListAPIView.as_view()),
-    path('comment/<int:id>', comment_post_api),
+    path('comment/<int:id>', comment_project_api),
  
     
 ]
