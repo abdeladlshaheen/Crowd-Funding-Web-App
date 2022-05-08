@@ -155,6 +155,13 @@ class DeleteUserView(APIView):
         user.delete()
         return Response({"response":"Delete"})
 
+class userproject(APIView):
+    def get(self, request):
+     payload = Auth.authenticate(request)
+     user = get_object_or_404(User, pk=payload['id'])
+     projects = Project.objects.filter(user=(user.id)) 
+     serializer = ProjectSerializer(projects,many=True)
+     return Response(serializer.data)
 
 
 class RequestPasswordResetEmail(generics.GenericAPIView):
