@@ -1,6 +1,5 @@
 from django.urls import path, include
 from rest_framework import routers
-
 from .views import RegisterView, LoginView, UserView, LogoutView, RequestPasswordResetEmail, PasswordTokenCheckAPI, SetNewPasswordAPIView, UserListView, UpdateUserView,DeleteUserView,userproject, GetUserView
 from django_email_verification import urls as mail_urls
 from django_email_verification import send_email
