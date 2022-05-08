@@ -1,10 +1,15 @@
 from rest_framework import serializers
-from .models import Project, Picture, Comment, ProjectDonation, Tag, UserRateProject, CommentReport, ProjectReport
-
+from .models import Project, Picture, Comment, ProjectDonation, Tag, UserRateProject,Category, CommentReport, ProjectReport
 
 class PictureSerializer(serializers.ModelSerializer):
     class Meta:
         model = Picture
+        fields = "__all__"
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
         fields = "__all__"
 
 

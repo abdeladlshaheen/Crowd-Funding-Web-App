@@ -16,23 +16,6 @@ class Category(models.Model):
         return self.name
 
 
-# class Rate(models.Model):
-#     class RateChoices(models.IntegerChoices):
-#         POOR = 1
-#         FAIR = 2
-#         GOOD = 3
-#         VERYGOOD = 4
-#         EXCELLENT = 5
-
-    # rate = models.IntegerField(
-    #     choices=RateChoices.choices, unique=True, primary_key=True)
-#     rate = models.IntegerField(
-#         choices=RateChoices.choices, unique=True, primary_key=True)
-
-#     def __str__(self):
-#         return f"Rate ({self.rate})"
-
-
 class Project(models.Model):
     title = models.CharField(max_length=100, unique=True)
     details = models.CharField(max_length=255)
@@ -49,6 +32,7 @@ class Project(models.Model):
     is_canceled = models.BooleanField(default=False)
     project_reports = models.SmallIntegerField(default=0)
     is_reported = models.BooleanField(default=False)
+    is_highlighted = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
@@ -88,8 +72,7 @@ class Picture(models.Model):
         blank=True, null=True, upload_to="projects/static/images")
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
-    
-    
+
 class Comment(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
@@ -98,6 +81,7 @@ class Comment(models.Model):
     updated = models.DateTimeField(auto_now=True)
     comment_reports = models.SmallIntegerField(default=0)
     is_reported = models.BooleanField(default=False)
+
     def __str__(self):
         return f"{self.user} on {self.project}"
 
