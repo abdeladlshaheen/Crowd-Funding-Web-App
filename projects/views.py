@@ -1,4 +1,3 @@
-# from asyncio.windows_events import NULL
 from datetime import datetime, timezone, tzinfo
 from decimal import Decimal
 import json
@@ -8,7 +7,7 @@ from rest_framework.response import Response
 from .models import Project, ProjectDonation, Tag, UserRateProject, Comment
 from .serializers import PictureSerializer, ProjectSerializer, TagSerializer, ProjectDonationSerializer, UserRateProjectSerializer, CommentSerializer
 from django.http import HttpResponse
-
+from django.db.models import Sum
 from users.views import Auth
 from rest_framework import viewsets
 from rest_framework.generics import ListAPIView
@@ -108,6 +107,7 @@ class RateProjectView(APIView):
 # user
 
 
+@api_view(['GET'])
 def cancel_project(request, project_id):
     user_id = Auth.authenticate(request)['id']
     project = get_object_or_404(Project, pk=project_id)
@@ -234,9 +234,17 @@ class DonationView(APIView):
         return Response({"detail": serializer.data})
 
 
-def get_highest_five_projects():
-    pass
+@api_view(['GET'])
+def get_highest_five_projects(request):
+    projects_ids = UserRateProject.objects.values_list('project_id', flat=True).annotate(
+        Sum('rate')).order_by('-rate__sum')[:5]
+    top_five = Project.objects.in_bulk(projects_ids).values()
+    projects_serializer = ProjectSerializer(top_five, many=True)
+    return Response(projects_serializer.data)
 
 
-def get_latest_five_projects():
-    pass
+@api_view(['GET'])
+def get_latest_five_projects(request):
+    latest_projects = Project.objects.all().order_by('-start_time')[:5]
+    projects_serializer = ProjectSerializer(latest_projects, many=True)
+    return Response(projects_serializer.data)
