@@ -30,6 +30,7 @@ class Project(models.Model):
     thumbnail = models.ImageField(
         blank=True, null=True, upload_to="projects/static/images")
     is_canceled = models.BooleanField(default=False)
+    # is_highlighted = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
@@ -69,8 +70,7 @@ class Picture(models.Model):
         blank=True, null=True, upload_to="projects/static/images")
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
-    
-    
+
 class Comment(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
@@ -79,7 +79,6 @@ class Comment(models.Model):
     updated = models.DateTimeField(auto_now=True)
     comment_reports = models.SmallIntegerField(default=0)
     is_reported = models.BooleanField(default=False)
+
     def __str__(self):
         return f"{self.user} on {self.project}"
-    
-    

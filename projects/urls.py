@@ -17,5 +17,5 @@ urlpatterns = [
     path('selected', get_latest_five_selected_projects),
     path('categories', get_categories),
     path('categories/<int:category_id>', get_category_projects),
-    path('search', search)
+    path('search/<str:word>', search)
 ]

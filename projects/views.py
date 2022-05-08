@@ -266,5 +266,13 @@ def get_category_projects(request, category_id):
 
 
 @api_view(['GET'])
-def search():
-    pass
+def search(request, word=''):
+    tags_ids = Tag.objects.distinct().values_list('project', flat=True).filter(
+        name__contains=word)
+    print(tags_ids)
+    if not tags_ids:
+        projects = Project.objects.filter(title__contains=word)
+    else:
+        projects = Project.objects.in_bulk(tags_ids).values()
+    project_serializer = ProjectSerializer(projects, many=True)
+    return Response(project_serializer.data)
