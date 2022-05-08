@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from .models import Project, Picture, Comment, ProjectDonation, Tag, UserRateProject, Category
-
+from .models import Project, Picture, Comment, ProjectDonation, Tag, UserRateProject,Category, CommentReport, ProjectReport
 
 class PictureSerializer(serializers.ModelSerializer):
     class Meta:
@@ -55,4 +54,16 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
+        fields = "__all__"
+
+
+class CommentReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommentReport
+        fields = "__all__"
+
+
+class ProjectReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectReport
         fields = "__all__"

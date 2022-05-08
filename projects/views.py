@@ -4,8 +4,10 @@ import json
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Category, Project, ProjectDonation, Tag, UserRateProject, Comment
-from .serializers import CategorySerializer, PictureSerializer, ProjectSerializer, TagSerializer, ProjectDonationSerializer, UserRateProjectSerializer, CommentSerializer
+from .models import Category ,Project, ProjectDonation, Tag, UserRateProject, Comment, CommentReport, ProjectReport
+from .serializers import CategorySerializer, PictureSerializer, ProjectSerializer, TagSerializer, ProjectDonationSerializer, UserRateProjectSerializer, CommentSerializer, CommentReportSerializer, ProjectReportSerializer
+from decimal import Decimal
+from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from users.views import Auth
 from rest_framework.generics import ListAPIView
@@ -228,6 +230,58 @@ class DonationView(APIView):
 
         serializer.save()
         return Response({"detail": serializer.data})
+    
+
+@api_view(['GET','POST'])
+def comment_report_api(request, id):
+    user_id = Auth.authenticate(request)['id']
+    try:
+        comment = get_object_or_404(Comment, id=id)
+    except Comment.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    if request.method == 'GET':
+        reports = CommentReport.objects.filter(comment=comment)
+        serializers = CommentReportSerializer(reports,many=True)
+        return Response(serializers.data, status=status.HTTP_200_OK)
+    if request.method == 'POST':
+        serializer = CommentReportSerializer(data={"report_description":request.data['report_description'],"user":user_id, "comment":comment.id }, context={'request':request})
+        if serializer.is_valid() :  
+            if not comment.is_reported:
+                comment.comment_reports += 1
+                comment.is_reported = True
+                comment.save()
+            else:
+                comment.comment_reports += 1
+                comment.save()
+            serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET','POST'])
+def project_report_api(request, id):
+    user_id = Auth.authenticate(request)['id']
+    try:
+        project = get_object_or_404(Project, id=id)
+    except Project.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    if request.method == 'GET':
+        reports = ProjectReport.objects.filter(project=project)
+        serializers = ProjectReportSerializer(reports,many=True)
+        return Response(serializers.data, status=status.HTTP_200_OK)
+    if request.method == 'POST':
+        serializer = ProjectReportSerializer(data={"report_description":request.data['report_description'],"user":user_id, "project":project.id }, context={'request':request})
+        if serializer.is_valid() :  
+            if not project.is_reported:
+                project.project_reports += 1
+                project.is_reported = True
+                project.save()
+            else:
+                project.project_reports += 1
+                project.save()
+            serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @ api_view(['GET'])

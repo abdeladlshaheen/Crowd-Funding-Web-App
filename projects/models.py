@@ -30,6 +30,8 @@ class Project(models.Model):
     thumbnail = models.ImageField(
         blank=True, null=True, upload_to="projects/static/images")
     is_canceled = models.BooleanField(default=False)
+    project_reports = models.SmallIntegerField(default=0)
+    is_reported = models.BooleanField(default=False)
     is_highlighted = models.BooleanField(default=False)
 
     def __str__(self):
@@ -79,6 +81,24 @@ class Comment(models.Model):
     updated = models.DateTimeField(auto_now=True)
     comment_reports = models.SmallIntegerField(default=0)
     is_reported = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user} on {self.project}"
+
+
+class CommentReport(models.Model):
+    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
+    report_description = models.CharField(max_length=600)
+
+    def __str__(self):
+        return f"{self.user} on {self.comment}"
+    
+
+class ProjectReport(models.Model):
+    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    report_description = models.CharField(max_length=600)
 
     def __str__(self):
         return f"{self.user} on {self.project}"
