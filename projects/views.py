@@ -4,10 +4,9 @@ import json
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Project, ProjectDonation, Tag, UserRateProject, Comment
-from .serializers import PictureSerializer, ProjectSerializer, TagSerializer, ProjectDonationSerializer, UserRateProjectSerializer, CommentSerializer
+from .models import Category, Project, ProjectDonation, Tag, UserRateProject, Comment
+from .serializers import CategorySerializer, PictureSerializer, ProjectSerializer, TagSerializer, ProjectDonationSerializer, UserRateProjectSerializer, CommentSerializer
 from django.http import HttpResponse
-from django.db.models import Sum
 from users.views import Auth
 from rest_framework.generics import ListAPIView
 
@@ -240,8 +239,30 @@ def get_highest_five_projects(request):
     return Response(projects_serializer.data)
 
 
-@ api_view(['GET'])
+@api_view(['GET'])
 def get_latest_five_projects(request):
     latest_projects = Project.objects.all().order_by('-start_time')[:5]
     projects_serializer = ProjectSerializer(latest_projects, many=True)
     return Response(projects_serializer.data)
+
+
+@api_view(['GET'])
+def get_latest_five_selected_projects(request):
+    pass
+
+
+@api_view(['GET'])
+def get_categories(request):
+    categories = Category.objects.all()
+    category_serailizer = CategorySerializer(categories, many=True)
+    return Response(category_serailizer.data)
+
+
+@api_view(['GET'])
+def get_category_projects(request, category_id):
+    pass
+
+
+@api_view(['GET'])
+def search():
+    pass
