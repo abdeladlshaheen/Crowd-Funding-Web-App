@@ -165,6 +165,7 @@ class ProjectDetails(APIView):
 
 @ api_view(['GET', 'POST'])
 def comment_project_api(request, id):
+    user_id = Auth.authenticate(request)['id']
     try:
         project = get_object_or_404(Project, id=id)
     except Project.DoesNotExist:
@@ -174,8 +175,7 @@ def comment_project_api(request, id):
         serializers = CommentSerializer(comments, many=True)
         return Response(serializers.data, status=status.HTTP_200_OK)
     if request.method == 'POST':
-        serializer = CommentSerializer(
-            data=request.data, context={'request': request})
+        serializer = CommentSerializer(data={"comment":request.data['comment'],"user":user_id, "project":project.id }, context={'request':request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
