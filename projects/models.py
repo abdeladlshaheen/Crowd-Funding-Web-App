@@ -27,8 +27,7 @@ class Project(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     tags = models.ManyToManyField(Tag)
-    thumbnail = models.ImageField(
-        blank=True, null=True, upload_to="projects/static/images")
+    thumbnail = models.ImageField(upload_to="projects/static/images")
     is_canceled = models.BooleanField(default=False)
     project_reports = models.SmallIntegerField(default=0)
     is_reported = models.BooleanField(default=False)
