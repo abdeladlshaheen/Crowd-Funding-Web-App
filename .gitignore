@@ -1,5 +1,5 @@
-users/static/images/*
-projects/static/images/*
+users/static/users/images/*
+projects/static/projects/images/*
 *.pyc
 .idea
 .env

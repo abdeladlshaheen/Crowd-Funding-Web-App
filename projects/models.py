@@ -27,7 +27,7 @@ class Project(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     tags = models.ManyToManyField(Tag)
-    thumbnail = models.ImageField(upload_to="projects/static/images")
+    thumbnail = models.ImageField(upload_to="projects/static/projects/images")
     is_canceled = models.BooleanField(default=False)
     project_reports = models.SmallIntegerField(default=0)
     is_reported = models.BooleanField(default=False)
@@ -92,7 +92,7 @@ class CommentReport(models.Model):
 
     def __str__(self):
         return f"{self.user} on {self.comment}"
-    
+
 
 class ProjectReport(models.Model):
     user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)

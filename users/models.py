@@ -6,7 +6,8 @@ from django_countries.fields import CountryField
 
 
 class User(AbstractUser):
-    phone_regex = RegexValidator(regex=r'^01[0125][0-9]{8}$', message="Invalid Phone Number.")
+    phone_regex = RegexValidator(
+        regex=r'^01[0125][0-9]{8}$', message="Invalid Phone Number.")
     password_regex = \
         RegexValidator(regex=r'^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[a-zA-Z\d@$.!%*#?&]',
                        message="Password must be combination of Uppercase, Lowercase, Special Characters and Digits.")
@@ -17,7 +18,7 @@ class User(AbstractUser):
     email = models.EmailField(max_length=254, unique=True)
     password = models.CharField(validators=[password_regex], max_length=255)
     mobile_phone = models.CharField(validators=[phone_regex], max_length=11)
-    profile_picture = models.ImageField(upload_to="users/static/images")
+    profile_picture = models.ImageField(upload_to="users/static/users/images")
 
     # optional fields
     birthday = models.DateField(blank=True, null=True)
