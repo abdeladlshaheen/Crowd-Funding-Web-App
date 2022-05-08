@@ -1,7 +1,7 @@
+from urllib import response
 from django.shortcuts import render, get_object_or_404
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework import viewsets
 from .serializers import UserSerializer, ResetPasswordEmailRequestSerializer, SetNewPasswordSerializer
 from .models import User
 from projects.models import Project
@@ -47,17 +47,10 @@ class Auth:
                 pass
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-
 class UserListView(APIView):
-    # TODO: AttributeError: Got AttributeError when attempting to get a value for field `title` on serializer `ProjectSerializer`.
     def get(self, request):
-        user = User.objects.all()
-        serializer = UserSerializer(user)
-        return Response(serializer.data)
+        user = User.objects.filter(is_active=1, is_staff=0, is_superuser=0).values()
+        return Response(user)
 
 
 class UserView(APIView):
@@ -153,6 +146,15 @@ class UpdateUserView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+class DeleteUserView(APIView):
+    def delete(self, request):
+        payload = Auth.authenticate(request)
+        user = get_object_or_404(User, pk=payload['id'])
+        user.delete()
+        return Response({"response":"Delete"})
+
 
 
 class RequestPasswordResetEmail(generics.GenericAPIView):
