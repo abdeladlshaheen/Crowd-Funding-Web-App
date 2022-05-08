@@ -107,8 +107,9 @@ class RateProjectView(APIView):
 def cancel_project(request, project_id):
     user_id = Auth.authenticate(request)['id']
     project = get_object_or_404(Project, pk=project_id)
-    res = Response()
-    if check_cancel_project(project.donations, project.total_target) and project.user_id == user_id:
+    current_project_donations = ProjectDonation.objects.filter(
+        project=project_id).aggregate(Sum('donation'))['donation__sum']
+    if check_cancel_project(current_project_donations, project.total_target) and project.user_id == user_id:
         Project.objects.filter(pk=project_id).update(is_canceled=True)
         return HttpResponse(json.dumps({'success': 'Project Is Canceled Successfully'}), content_type="application/json")
     else:
@@ -141,7 +142,7 @@ class ProjectDetails(APIView):
         related = related_projects(project)
         picture = project.picture_set.all().values_list('picture', flat=True)
         # rate
-        #TODO: average
+        # TODO: average
         rate = project.userrateproject_set.all().values_list('rate', flat=True)
         # donation
         donation = project.projectdonation_set.all().values_list('donation', flat=True)
@@ -161,7 +162,7 @@ class ProjectDetails(APIView):
         return Response(data=context)
 
 
-@api_view(['GET', 'POST'])
+@ api_view(['GET', 'POST'])
 def comment_project_api(request, id):
     try:
         project = get_object_or_404(Project, id=id)
@@ -230,7 +231,7 @@ class DonationView(APIView):
         return Response({"detail": serializer.data})
 
 
-@api_view(['GET'])
+@ api_view(['GET'])
 def get_highest_five_projects(request):
     projects_ids = UserRateProject.objects.values_list('project_id', flat=True).annotate(
         Sum('rate')).order_by('-rate__sum')[:5]
@@ -239,7 +240,7 @@ def get_highest_five_projects(request):
     return Response(projects_serializer.data)
 
 
-@api_view(['GET'])
+@ api_view(['GET'])
 def get_latest_five_projects(request):
     latest_projects = Project.objects.all().order_by('-start_time')[:5]
     projects_serializer = ProjectSerializer(latest_projects, many=True)
