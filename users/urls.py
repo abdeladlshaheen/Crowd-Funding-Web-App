@@ -1,16 +1,13 @@
 from django.urls import path, include
 from rest_framework import routers
 
-from .views import RegisterView, LoginView, UserView, LogoutView, RequestPasswordResetEmail, PasswordTokenCheckAPI, SetNewPasswordAPIView, UserViewSet, UserListView, UpdateUserView,DeleteUserView, GetUserView
+from .views import RegisterView, LoginView, UserView, LogoutView, RequestPasswordResetEmail, PasswordTokenCheckAPI, SetNewPasswordAPIView, UserListView, UpdateUserView,DeleteUserView, GetUserView
 from django_email_verification import urls as mail_urls
 from django_email_verification import send_email
 
-router = routers.DefaultRouter()
-router.register('', UserViewSet)
 
 urlpatterns = [
-    path('', include(router.urls), name="all_users"),
-    # path('', UserListView.as_view(), name="all_users"),
+    path('', UserListView.as_view(), name="all_users"),
     path('<int:id>', GetUserView.as_view(), name="get_user"),
     path('user', UserView.as_view(), name="user_profile"),
     path('register', RegisterView.as_view(), name="register"),

@@ -13,7 +13,6 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 
 from users.views import Auth
-from rest_framework import viewsets
 from rest_framework.generics import ListAPIView
 
 from rest_framework.filters import (
@@ -25,17 +24,10 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 
 
-class ProjectViewSet(viewsets.ModelViewSet):
-    queryset = Project.objects.all()
-    serializer_class = ProjectSerializer
-
-
 class ProjectListView(APIView):
-    # TODO: AttributeError: Got AttributeError when attempting to get a value for field `title` on serializer `ProjectSerializer`.
     def get(self, request):
-        project = Project.objects.all()
-        serializer = ProjectSerializer(project)
-        return Response(serializer.data)
+        project = Project.objects.all().values()
+        return Response(project)
 
 
 class CreateProjectView(APIView):
@@ -60,31 +52,35 @@ class CreateProjectView(APIView):
         project_instance = get_object_or_404(
             Project, pk=project_serializer.data['id'])
 
-        # store multiple tags
-        # if it doesn't exist, create a new one
-        for tag in tags:
-            stored_tag = Tag.objects.filter(name=tag).first()
-            if stored_tag:
-                tags_list.append(stored_tag)
-            else:
-                tag_serializer = TagSerializer(data={'name': tag})
-                tag_serializer.is_valid(raise_exception=True)
-                tag_serializer.save()
+        try:
+            # store multiple tags
+            # if it doesn't exist, create a new one
+            for tag in tags:
+                stored_tag = Tag.objects.filter(name=tag).first()
+                if stored_tag:
+                    tags_list.append(stored_tag)
+                else:
+                    tag_serializer = TagSerializer(data={'name': tag})
+                    tag_serializer.is_valid(raise_exception=True)
+                    tag_serializer.save()
 
-                tag_instance = get_object_or_404(
-                    Tag, pk=tag_serializer.data['id'])
-                tags_list.append(tag_instance)
+                    tag_instance = get_object_or_404(
+                        Tag, pk=tag_serializer.data['id'])
+                    tags_list.append(tag_instance)
 
-        # assign the project for each tag entered
-        for tag in tags_list:
-            project_instance.tags.add(tag)
+            # assign the project for each tag entered
+            for tag in tags_list:
+                project_instance.tags.add(tag)
 
-        # store multiple project pictures
-        for picture in pictures:
-            picture_serializer = PictureSerializer(
-                data={'project': project_serializer.data['id'], 'picture': picture})
-            picture_serializer.is_valid(raise_exception=True)
-            picture_serializer.save()
+            # store multiple project pictures
+            for picture in pictures:
+                picture_serializer = PictureSerializer(
+                    data={'project': project_serializer.data['id'], 'picture': picture})
+                picture_serializer.is_valid(raise_exception=True)
+                picture_serializer.save()
+        except:
+            project_instance.delete()
+            return Response({"detail": "Unexpected error!"})
 
         return Response(project_serializer.data)
 
