@@ -260,7 +260,9 @@ def get_categories(request):
 
 @api_view(['GET'])
 def get_category_projects(request, category_id):
-    pass
+    category_projects = Project.objects.filter(category_id=category_id)
+    project_serializer = ProjectSerializer(category_projects, many=True)
+    return Response(project_serializer.data)
 
 
 @api_view(['GET'])
