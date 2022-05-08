@@ -248,7 +248,10 @@ def get_latest_five_projects(request):
 
 @api_view(['GET'])
 def get_latest_five_selected_projects(request):
-    pass
+    latest_projects = Project.objects.filter(
+        is_highlighted=True).order_by('-start_time')[:5]
+    projects_serializer = ProjectSerializer(latest_projects, many=True)
+    return Response(projects_serializer.data)
 
 
 @api_view(['GET'])

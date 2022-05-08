@@ -30,7 +30,7 @@ class Project(models.Model):
     thumbnail = models.ImageField(
         blank=True, null=True, upload_to="projects/static/images")
     is_canceled = models.BooleanField(default=False)
-    # is_highlighted = models.BooleanField(default=False)
+    is_highlighted = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
