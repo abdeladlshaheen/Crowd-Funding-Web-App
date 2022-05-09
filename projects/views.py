@@ -4,7 +4,7 @@ import json
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Category ,Project, ProjectDonation, Tag, UserRateProject, Comment, CommentReport, ProjectReport
+from .models import Category, Project, ProjectDonation, Tag, UserRateProject, Comment, CommentReport, ProjectReport
 from .serializers import CategorySerializer, PictureSerializer, ProjectSerializer, TagSerializer, ProjectDonationSerializer, UserRateProjectSerializer, CommentSerializer, CommentReportSerializer, ProjectReportSerializer
 from decimal import Decimal
 from django.shortcuts import get_object_or_404
@@ -148,17 +148,23 @@ class ProjectDetails(APIView):
         # donation
         donation = project.projectdonation_set.all().values_list('donation', flat=True)
 
+        # comments
+        comments = project.comment_set.all()
+
         # serializers
         project_serializer = ProjectSerializer(project)
 
         related_serializer = ProjectSerializer(related, many=True)
+
+        comment_serializer = CommentSerializer(comments, many=True)
         # wrap all serializers in one object
         context = {
             "project": project_serializer.data,
             "picture": picture,
             "donation": donation,
             "rate": rate,
-            "related": related_serializer.data
+            "related": related_serializer.data,
+            "comments": comment_serializer.data
         }
         return Response(data=context)
 
@@ -175,7 +181,8 @@ def comment_project_api(request, id):
         serializers = CommentSerializer(comments, many=True)
         return Response(serializers.data, status=status.HTTP_200_OK)
     if request.method == 'POST':
-        serializer = CommentSerializer(data={"comment":request.data['comment'],"user":user_id, "project":project.id }, context={'request':request})
+        serializer = CommentSerializer(
+            data={"comment": request.data['comment'], "user": user_id, "project": project.id}, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -208,7 +215,9 @@ class DonationView(APIView):
         current_project_donations = ProjectDonation.objects.filter(
             project=project_id).aggregate(Sum('donation'))
 
-        # get donation from request
+        if current_project_donations["donation__sum"] == None:
+            current_project_donations["donation__sum"] = 0
+            # get donation from request
         donation = request.data['donation']
 
         # start checking
@@ -224,15 +233,17 @@ class DonationView(APIView):
 
         serializer.is_valid(raise_exception=True)
 
+        print(current_project_donations["donation__sum"])
+
         if(current_project_donations["donation__sum"] + Decimal(serializer.validated_data["donation"]) > project.total_target):
             return Response(
                 {"detail": "sorry, project total target reached"})
 
         serializer.save()
         return Response({"detail": serializer.data})
-    
 
-@api_view(['GET','POST'])
+
+@api_view(['GET', 'POST'])
 def comment_report_api(request, id):
     user_id = Auth.authenticate(request)['id']
     try:
@@ -241,11 +252,12 @@ def comment_report_api(request, id):
         return Response(status=status.HTTP_404_NOT_FOUND)
     if request.method == 'GET':
         reports = CommentReport.objects.filter(comment=comment)
-        serializers = CommentReportSerializer(reports,many=True)
+        serializers = CommentReportSerializer(reports, many=True)
         return Response(serializers.data, status=status.HTTP_200_OK)
     if request.method == 'POST':
-        serializer = CommentReportSerializer(data={"report_description":request.data['report_description'],"user":user_id, "comment":comment.id }, context={'request':request})
-        if serializer.is_valid() :  
+        serializer = CommentReportSerializer(
+            data={"report_description": request.data['report_description'], "user": user_id, "comment": comment.id}, context={'request': request})
+        if serializer.is_valid():
             if not comment.is_reported:
                 comment.comment_reports += 1
                 comment.is_reported = True
@@ -258,7 +270,7 @@ def comment_report_api(request, id):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET','POST'])
+@api_view(['GET', 'POST'])
 def project_report_api(request, id):
     user_id = Auth.authenticate(request)['id']
     try:
@@ -267,11 +279,12 @@ def project_report_api(request, id):
         return Response(status=status.HTTP_404_NOT_FOUND)
     if request.method == 'GET':
         reports = ProjectReport.objects.filter(project=project)
-        serializers = ProjectReportSerializer(reports,many=True)
+        serializers = ProjectReportSerializer(reports, many=True)
         return Response(serializers.data, status=status.HTTP_200_OK)
     if request.method == 'POST':
-        serializer = ProjectReportSerializer(data={"report_description":request.data['report_description'],"user":user_id, "project":project.id }, context={'request':request})
-        if serializer.is_valid() :  
+        serializer = ProjectReportSerializer(
+            data={"report_description": request.data['report_description'], "user": user_id, "project": project.id}, context={'request': request})
+        if serializer.is_valid():
             if not project.is_reported:
                 project.project_reports += 1
                 project.is_reported = True

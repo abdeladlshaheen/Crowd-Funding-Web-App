@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 AUTH_USER_MODEL = 'users.User'
+CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
 # CORS_ALLOWED_ORIGINS = [
 #     "http://localhost:3000",
 # ]
