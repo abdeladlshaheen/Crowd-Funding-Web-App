@@ -5,7 +5,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from .serializers import UserSerializer, ResetPasswordEmailRequestSerializer, SetNewPasswordSerializer
 from .models import User
 from projects.models import Project
-from projects.serializers import ProjectSerializer
+from projects.models import ProjectDonation
+from projects.serializers import ProjectSerializer,ProjectDonationSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django_email_verification import send_email
@@ -161,6 +162,14 @@ class userproject(APIView):
      user = get_object_or_404(User, pk=payload['id'])
      projects = Project.objects.filter(user=(user.id)) 
      serializer = ProjectSerializer(projects,many=True)
+     return Response(serializer.data)
+
+class userDonations(APIView):
+    def get(self, request):
+     payload = Auth.authenticate(request)
+     user = get_object_or_404(User, pk=payload['id'])
+     Donations=ProjectDonation.objects.filter(user=(user.id))
+     serializer = ProjectDonationSerializer(Donations,many=True)
      return Response(serializer.data)
 
 
