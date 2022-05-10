@@ -68,7 +68,7 @@ class UserRateProject(models.Model):
 
 class Picture(models.Model):
     picture = models.ImageField(
-        blank=True, null=True, upload_to="projects/static/images")
+        blank=True, null=True, upload_to="projects/static/projects/images")
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
 

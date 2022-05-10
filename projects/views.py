@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from users.views import Auth
 from rest_framework.generics import ListAPIView
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from rest_framework.filters import (
     SearchFilter,
@@ -29,6 +30,8 @@ class ProjectListView(APIView):
 
 
 class CreateProjectView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+
     def post(self, request):
         pictures = request.data.getlist(
             'pictures') if 'pictures' in request.data else []
