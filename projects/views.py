@@ -1,6 +1,7 @@
 from datetime import datetime, timezone, tzinfo
 from decimal import Decimal
 import json
+from unicodedata import category
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -40,9 +41,9 @@ class CreateProjectView(APIView):
 
         # the user who creates the project must be the one who is already logged in
         payload = Auth.authenticate(request)
-        request.data._mutable = True
+        # request.data._mutable = True
         request.data['user'] = payload['id']
-        request.data._mutable = False
+        # request.data._mutable = False
 
         # store project data
         project_serializer = ProjectSerializer(data=request.data)
@@ -160,9 +161,11 @@ class ProjectDetails(APIView):
         related_serializer = ProjectSerializer(related, many=True)
 
         comment_serializer = CommentSerializer(comments, many=True)
+
+        category = Category.objects.filter(id=project_serializer.data['category']).first().name
         # wrap all serializers in one object
         context = {
-            "project": project_serializer.data,
+            "project": {**project_serializer.data, 'category': category},
             "picture": picture,
             "donation": donation,
             "rate": rate,
