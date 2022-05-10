@@ -41,11 +41,11 @@ class ProjectSerializer(serializers.ModelSerializer):
     # nested serializers
     # SlugRelatedField
 
-    tags = serializers.SlugRelatedField(
-        slug_field="name",
-        many=True,
-        read_only=True
-    )
+    # tags = serializers.SlugRelatedField(
+    #     slug_field="name",
+    #     many=True,
+    #     read_only=True
+    # )
 
     # category = serializers.SlugRelatedField(
     #     slug_field="name",

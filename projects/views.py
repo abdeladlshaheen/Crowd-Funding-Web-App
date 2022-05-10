@@ -36,36 +36,37 @@ class CreateProjectView(APIView):
             'tags[]') if 'tags[]' in request.data else []
         tags_list = []
 
+        # store multiple tags
+        # if it doesn't exist, create a new one
+        for tag in tags:
+            stored_tag = Tag.objects.filter(name=tag).first()
+            if stored_tag:
+                tags_list.append(stored_tag.id)
+            else:
+                tag_serializer = TagSerializer(data={'name': tag})
+                tag_serializer.is_valid(raise_exception=True)
+                tag_serializer.save()
+
+                tag_instance = get_object_or_404(
+                    Tag, pk=tag_serializer.data['id'])
+                tags_list.append(tag_instance.id)
+
         # the user who creates the project must be the one who is already logged in
         payload = Auth.authenticate(request)
-        # request.data._mutable = True
+        request.data._mutable = True
         request.data['user'] = payload['id']
-        # request.data._mutable = False
+        request.data['tags'] = tags_list[0]
+        request.data._mutable = False
 
         # store project data
         project_serializer = ProjectSerializer(data=request.data)
         project_serializer.is_valid(raise_exception=True)
         project_serializer.save()
-
+        
         project_instance = get_object_or_404(
             Project, pk=project_serializer.data['id'])
 
         try:
-            # store multiple tags
-            # if it doesn't exist, create a new one
-            for tag in tags:
-                stored_tag = Tag.objects.filter(name=tag).first()
-                if stored_tag:
-                    tags_list.append(stored_tag)
-                else:
-                    tag_serializer = TagSerializer(data={'name': tag})
-                    tag_serializer.is_valid(raise_exception=True)
-                    tag_serializer.save()
-
-                    tag_instance = get_object_or_404(
-                        Tag, pk=tag_serializer.data['id'])
-                    tags_list.append(tag_instance)
-
             # assign the project for each tag entered
             for tag in tags_list:
                 project_instance.tags.add(tag)
