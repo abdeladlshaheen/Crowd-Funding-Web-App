@@ -47,10 +47,10 @@ class ProjectSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
-    category = serializers.SlugRelatedField(
-        slug_field="name",
-        read_only=True
-    )
+    # category = serializers.SlugRelatedField(
+    #     slug_field="name",
+    #     read_only=True
+    # )
 
     class Meta:
         model = Project
