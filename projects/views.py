@@ -1,7 +1,6 @@
 from datetime import datetime, timezone, tzinfo
 from decimal import Decimal
 import json
-from unicodedata import category
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -35,8 +34,11 @@ class CreateProjectView(APIView):
     def post(self, request):
         pictures = request.data.getlist(
             'pictures') if 'pictures' in request.data else []
-        tags = request.data.getlist(
+        print(pictures)
+
+        tags_array = request.data.getlist(
             'tags[]') if 'tags[]' in request.data else []
+        tags = tags_array[0].split(",")
         tags_list = []
 
         # store multiple tags
@@ -65,7 +67,7 @@ class CreateProjectView(APIView):
         project_serializer = ProjectSerializer(data=request.data)
         project_serializer.is_valid(raise_exception=True)
         project_serializer.save()
-        
+
         project_instance = get_object_or_404(
             Project, pk=project_serializer.data['id'])
 
@@ -163,7 +165,8 @@ class ProjectDetails(APIView):
 
         comment_serializer = CommentSerializer(comments, many=True)
 
-        category = Category.objects.filter(id=project_serializer.data['category']).first().name
+        category = Category.objects.filter(
+            id=project_serializer.data['category']).first().name
         # wrap all serializers in one object
         context = {
             "project": {**project_serializer.data, 'category': category},
