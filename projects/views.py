@@ -125,7 +125,10 @@ def cancel_project(request, project_id):
 
 
 def check_cancel_project(donnation, total):
-    return donnation < (Decimal('0.25') * total)
+    if donnation and total:
+        return donnation < (Decimal('0.25') * total)
+    else:
+        return False
 
 
 def related_projects(project):
