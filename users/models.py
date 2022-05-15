@@ -11,8 +11,7 @@ class User(AbstractUser):
     password_regex = \
         RegexValidator(regex=r'^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[a-zA-Z\d@$.!%*#?&]',
                        message="Password must be combination of Uppercase, Lowercase, Special Characters and Digits.")
-    usernameRegExp = RegexValidator(r'^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){1,18}[a-zA-Z0-9]$', message='Username is not valid')
-    nameRegExp = RegexValidator(r'^[a-zA-Z0-9-]{1,18}\b$', message="Enter valid name")
+    nameRegExp = RegexValidator(r'^[a-zA-Z]{3,20}\b$', message="Enter valid name")
 # mandatory fields
     first_name = models.CharField(max_length=50, validators=[nameRegExp])
     last_name = models.CharField(max_length=50, validators=[nameRegExp])
