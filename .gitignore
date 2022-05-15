@@ -4,3 +4,5 @@ projects/static/projects/images/*
 .idea
 .env
 Crowd-Funding-Web-App/
+projects/static/images/*
+users/static/images/*

@@ -11,10 +11,11 @@ class User(AbstractUser):
     password_regex = \
         RegexValidator(regex=r'^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[a-zA-Z\d@$.!%*#?&]',
                        message="Password must be combination of Uppercase, Lowercase, Special Characters and Digits.")
-
-    # mandatory fields
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
+    usernameRegExp = RegexValidator(r'^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){1,18}[a-zA-Z0-9]$', message='Username is not valid')
+    nameRegExp = RegexValidator(r'^[a-zA-Z0-9-]{4,}\b$', message="Enter valid name")
+# mandatory fields
+    first_name = models.CharField(max_length=50, validators=[nameRegExp])
+    last_name = models.CharField(max_length=50, validators=[nameRegExp])
     email = models.EmailField(max_length=254, unique=True)
     password = models.CharField(validators=[password_regex], max_length=255)
     mobile_phone = models.CharField(validators=[phone_regex], max_length=11)
@@ -24,9 +25,8 @@ class User(AbstractUser):
     birthday = models.DateField(blank=True, null=True)
     fb_profile = models.URLField(max_length=200, blank=True, null=True)
     country = CountryField(blank=True, null=True)
-
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
-
+            return f"{self.first_name} {self.last_name}"
+        
     def get_absolute_url(self):
-        pass
+            pass

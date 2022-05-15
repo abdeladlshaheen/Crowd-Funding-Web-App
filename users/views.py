@@ -139,6 +139,7 @@ class LogoutView(APIView):
 
 
 class UpdateUserView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
     def put(self, request):
         payload = Auth.authenticate(request)
         user = get_object_or_404(User, pk=payload['id'])
