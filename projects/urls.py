@@ -12,12 +12,12 @@ urlpatterns = [
     path('donate/<int:id>', DonationView.as_view()),
     path('comments', CommentListAPIView.as_view()),
     path('comment/<int:id>', comment_project_api),
-    path('report_comment/<int:id>',comment_report_api),
-    path('report_project/<int:id>',project_report_api),
+    path('report_comment/<int:id>', comment_report_api),
+    path('report_project/<int:id>', project_report_api),
     path('latestfive', get_latest_five_projects),
     path('topfive', get_highest_five_projects),
     path('selected', get_latest_five_selected_projects),
     path('categories', get_categories),
     path('categories/<int:category_id>', get_category_projects),
-    path('search/<str:word>', search)
+    path('search/<str:word>', search),
 ]

@@ -1,5 +1,6 @@
 from urllib import response
 from django.shortcuts import render, get_object_or_404
+from requests import request
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.parsers import MultiPartParser, FormParser
 from .serializers import UserSerializer, ResetPasswordEmailRequestSerializer, SetNewPasswordSerializer
@@ -14,7 +15,7 @@ from django_email_verification import send_email
 import jwt
 import datetime
 import os
-
+import requests
 from rest_framework import generics, status
 from .utils import Util
 from django.urls import reverse
@@ -170,10 +171,10 @@ class userDonations(APIView):
      payload = Auth.authenticate(request)
      user = get_object_or_404(User, pk=payload['id'])
      Donations=ProjectDonation.objects.filter(user=(user.id))
-     serializer = ProjectDonationSerializer(Donations,many=True)
-     return Response(serializer.data)
+     DonationsSerializer = ProjectDonationSerializer(Donations,many=True)
+     return Response(DonationsSerializer.data)
 
-
+   
 class RequestPasswordResetEmail(generics.GenericAPIView):
     serializer_class = ResetPasswordEmailRequestSerializer
 

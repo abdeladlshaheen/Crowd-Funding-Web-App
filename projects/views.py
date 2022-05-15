@@ -117,6 +117,8 @@ def cancel_project(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     current_project_donations = ProjectDonation.objects.filter(
         project=project_id).aggregate(Sum('donation'))['donation__sum']
+    if not current_project_donations:
+        current_project_donations = 0
     if check_cancel_project(current_project_donations, project.total_target) and project.user_id == user_id:
         Project.objects.filter(pk=project_id).update(is_canceled=True)
         return HttpResponse(json.dumps({'success': 'Project Is Canceled Successfully'}), content_type="application/json")
